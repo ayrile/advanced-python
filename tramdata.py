@@ -105,16 +105,13 @@ def lines_via_stop(line_dict, stop):
     lines.sort(key=int)
     
     return lines
-    '''
-    if lines:
-        print(lines)
-        return
-    print('There are no lines going through this stop.')
-    '''
     
 
 def lines_between_stops(line_dict, stop1, stop2):
     lines = []
+    
+    if not lines_via_stop(line_dict, stop1) or not lines_via_stop(line_dict, stop2):
+        return None
     
     for line in line_dict:
         if stop1 in line_dict[line] and stop2 in line_dict[line]:
@@ -122,19 +119,15 @@ def lines_between_stops(line_dict, stop1, stop2):
     lines.sort(key=int)
     
     return lines
-    
-    '''
-    if lines:
-        print(lines)
-        return
-    print('There is no line directly connecting these two stops.')
-    '''
 
 
 def time_between_stops(line_dict, times_dict, line, stop1, stop2):
     time = 0
     
-    if line in line_dict and stop1 in line_dict[line] and stop2 in line_dict[line]:
+    if not line in line_dict or not lines_via_stop(line_dict, stop1) or not lines_via_stop(line_dict, stop2):
+        return None
+    
+    if stop1 in line_dict[line] and stop2 in line_dict[line]:
         pos1 = line_dict[line].index(stop1)
         pos2 = line_dict[line].index(stop2)
         stops = line_dict[line][min(pos1, pos2):max(pos1, pos2)+1]
@@ -146,16 +139,9 @@ def time_between_stops(line_dict, times_dict, line, stop1, stop2):
             elif s1 in times_dict and s2 in times_dict[s1]:
                 time += times_dict[s1][s2]
             else:
-                print(f'Information for travel time between stops {s1} and {s2} missing.')
+                print(f'Information for travel time between stops {s1} and {s2} missing.') 
     
     return time
-    '''
-        print(time)
-        
-    else:
-        print('The two stops are not directly connected via the specified line.')
-        return 
-    '''
     
 
 def distance_between_stops(stops_dict, stop1, stop2):
@@ -171,10 +157,6 @@ def distance_between_stops(stops_dict, stop1, stop2):
         distance = round(R * math.sqrt(delta_phi**2 + (math.cos(phi_m) * delta_lambda)**2), 3)
     
     return distance
-    '''
-    else:
-        print('At least one of the specified stops could not be found.')
-    '''
 
 
 ## dialogue function ##
@@ -199,11 +181,13 @@ def answer_query(tramdict, query):
         stop1 = ' '.join(words[1:pos_of_and])
         stop2 = ' '.join(words[pos_of_and+1:])
         if stop1 == stop2:
-            return 2
+            return 'cannot enter same stop twice'
         lines = lines_between_stops(tramdict['lines'], stop1, stop2)
-        if lines:
-            return lines
-        return 2
+        if lines == None:
+            return 2
+        elif lines == []:
+            return f'no lines directly going from {stop1} to {stop2}'
+        return lines
     
     if query.startswith('time'):
         if not ' with ' in query or not ' from ' in query or not ' to ' in query:
@@ -215,11 +199,13 @@ def answer_query(tramdict, query):
         stop1 = ' '.join(words[pos_of_from+1:pos_of_to])
         stop2 = ' '.join(words[pos_of_to+1:])  
         if stop1 == stop2:
-            return 2
+            return 'cannot enter same stop twice'
         time = time_between_stops(tramdict['lines'], tramdict['times'], line, stop1, stop2)
-        if time:
-            return time
-        return 2
+        if time == None:
+            return 2
+        elif time == 0:
+            return f'no connection from {stop1} to {stop2} with line {line}'
+        return time
     
     if query.startswith('distance'):
         if not ' from ' in query or not ' to ' in query:
@@ -229,7 +215,7 @@ def answer_query(tramdict, query):
         stop1 = ' '.join(words[pos_of_from+1:pos_of_to])
         stop2 = ' '.join(words[pos_of_to+1:])    
         if stop1 == stop2:
-            return 2
+            return 'cannot enter same stop twice'
         distance = distance_between_stops(tramdict['stops'], stop1, stop2)
         if distance:
             return distance
@@ -244,8 +230,7 @@ def dialogue(jsonfile):
         with open(jsonfile, 'r') as file:
             tramnetwork = json.load(file)
     except FileNotFoundError:
-        print('The file tramnetwork.json could not be found.')
-        return
+        return f'The file {JSON_FILE_OUTPUT} could not be found.'
     
     while True:
         query = input('>')
@@ -263,16 +248,7 @@ def dialogue(jsonfile):
 
 ## main function ##
 if __name__ == '__main__':
-    #print(sys.argv[1])
-    if len(sys.argv) == 2 and sys.argv[1] == 'init':
+    if sys.argv[1:] == ['init']:
         build_tram_network((JSON_FILE_INPUT, TXT_FILE_INPUT))
     else:
-        dialogue(JSON_FILE_OUTPUT)                             
-
-
-
-## trying query functions ##
-#print(lines_via_stop(build_tram_lines(TXT_FILE_INPUT)[0], 'Chalmers'))
-#print(lines_between_stops(build_tram_lines(TXT_FILE_INPUT)[0], 'Chalmers', 'Valand'))
-#print(time_between_stops(build_tram_lines(TXT_FILE_INPUT)[0], build_tram_lines(TXT_FILE_INPUT)[1], '6', 'Chalmers', 'Järntorget'))
-#print(distance_between_stops(build_tram_stops(JSON_FILE_INPUT), 'Chalmers', 'Järntorget'))
+        dialogue(JSON_FILE_OUTPUT)      

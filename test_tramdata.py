@@ -44,9 +44,8 @@ class TestTramData(unittest.TestCase):
                 if row:
                     tramlines[current_line].append(stop)
 
-
         for line in tramlines:
-            self.assertEqual(tramlines[line], self.linedict[line], msg = stop + ' is not the same in linedict')
+            self.assertEqual(tramlines[line], self.linedict[line], msg = line + ' is not the same in linedict')
 
 
     def test_distance_feasible(self):
