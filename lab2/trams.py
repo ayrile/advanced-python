@@ -1,10 +1,11 @@
 import graphs
-import json, sys
-
+import json
+import sys
 sys.path.append( '.' )
 sys.path.append('../lab1/')
-import tramdata
-TRAM_FILE = 'tramnetwork.json'
+from tramdata import * 
+
+TRAM_FILE = '../lab1/tramnetwork.json'
 
 class TramStop:
     def __init__(self, name, lines=None, lat=None, lon=None):
@@ -46,7 +47,7 @@ class TramNetwork(graphs.WeightedGraph):
         self._stops = {}
         for stop in stops:
             name = stop 
-            lines_serving_stop = tramdata.lines_via_stop(lines, stop)
+            lines_serving_stop = lines_via_stop(lines, stop)
             lat, lon = stops[stop]['lat'], stops[stop]['lon']
             ts = TramStop(name, lines_serving_stop, lat, lon)
             self._stops[stop] = ts
@@ -89,7 +90,7 @@ class TramNetwork(graphs.WeightedGraph):
         return list(self._stops.keys())
 
     def geo_distance(self, a, b):
-        return tramdata.distance_between_stops(self._stops, a, b, network=True)
+        return distance_between_stops(self._stops, a, b, network=True)
     
     def line_stops(self, line):
         if line in self._lines:
