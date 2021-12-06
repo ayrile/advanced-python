@@ -171,7 +171,7 @@ def time_between_stops(line_dict, times_dict, line, stop1, stop2):
     return time
     
 
-def distance_between_stops(stops_dict, stop1, stop2):
+def distance_between_stops(stops_dict, stop1, stop2, network=False):
     """returns geographic distance between any two stops,
     returns None if unknown stop is entered,
     returns answer string if same stop is input twice
@@ -183,8 +183,12 @@ def distance_between_stops(stops_dict, stop1, stop2):
         return 'cannot enter same stop twice'
     
     if stop1 in stops_dict and stop2 in stops_dict:
-        lat1, lon1 = float(stops_dict[stop1]['lat']) * math.pi/180, float(stops_dict[stop1]['lon']) * math.pi/180
-        lat2, lon2 = float(stops_dict[stop2]['lat']) * math.pi/180, float(stops_dict[stop2]['lon']) * math.pi/180
+        if network:
+            lat1, lon1 = float(stops_dict[stop1].get_position()[0]) * math.pi/180, float(stops_dict[stop1].get_position()[1]) * math.pi/180
+            lat2, lon2 = float(stops_dict[stop2].get_position()[0]) * math.pi/180, float(stops_dict[stop2].get_position()[1]) * math.pi/180
+        else:
+            lat1, lon1 = float(stops_dict[stop1]['lat']) * math.pi/180, float(stops_dict[stop1]['lon']) * math.pi/180
+            lat2, lon2 = float(stops_dict[stop2]['lat']) * math.pi/180, float(stops_dict[stop2]['lon']) * math.pi/180
         R = 6371.009
         delta_phi = lat1-lat2
         phi_m = (lat1+lat2)/2
