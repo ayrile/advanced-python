@@ -3,6 +3,7 @@ import json
 import sys
 sys.path.append( '.' )
 sys.path.append('../lab1/')
+
 from tramdata import * 
 
 TRAM_FILE = '../lab1/tramnetwork.json'
