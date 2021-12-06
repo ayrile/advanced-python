@@ -4,7 +4,7 @@ import json, sys
 sys.path.append( '.' )
 sys.path.append('../lab1/')
 import tramdata
-TRAM_FILE = 'tramnetwork.json'
+TRAM_FILE = '../lab1/tramnetwork.json'
 
 class TramStop:
     def __init__(self, name, lines=None, lat=None, lon=None):
