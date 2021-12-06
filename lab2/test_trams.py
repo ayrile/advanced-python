@@ -5,11 +5,11 @@ from trams import *
 from graphs import *
 import unittest
 from collections import *
-import sys
+#import sys
 
-sys.path.append( '.' )
-sys.path.append('../lab1/')
-TRAM_FILE = 'tramnetwork.json'
+#sys.path.append( '.' )
+#sys.path.append('../lab1/')
+TRAM_FILE = '../lab1/tramnetwork.json'
 
 
 def BFS(G, node, goal=lambda n: False):
