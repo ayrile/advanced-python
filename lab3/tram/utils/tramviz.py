@@ -1,18 +1,21 @@
 # baseline tram visualization for Lab 3, modified to work with Django
 
-from .trams import readTramNetwork
-from .graphs import dijkstra
+from .trams import readTramNetwork     #.
+from .graphs import dijkstra           #.
 import graphviz
 import json
-import os
+import os, sys
+#sys.path.append('../../mysite/')
+#import settings
 from django.conf import settings
 
 # to be defined in Bonus task 1, but already included as mock-up
-from .trams import specialize_stops_to_lines, specialized_geo_distance, specialized_transition_time
+from .trams import specialize_stops_to_lines, specialized_geo_distance, specialized_transition_time   #.
 
 SHORTEST_PATH_SVG = os.path.join(settings.BASE_DIR,
                         'tram/templates/tram/images/shortest_path.svg')
 
+print(SHORTEST_PATH_SVG)
 
 # assign colors to lines, indexed by line number; not quite accurate
 gbg_linecolors = {
@@ -49,16 +52,17 @@ def network_graphviz(network, outfile, colors=None, positions=scaled_position):
     for stop in network.all_stops():
         
         x, y = network.stop_position(stop)
+        x, y = float(x), float(y)
         if positions:
             x, y = positions(network)((x, y))
         pos_x, pos_y = str(x), str(y)
         
-        if colors:
-            col = colors(stop) # set this to white to create gbg_tramnet.svg
+        if colors and stop in colors:
+            col = colors[stop] # set this to white to create gbg_tramnet.svg
         else:
             col = 'white'
             
-        dot.node(stop, label=stop, shape='rectangle', pos=pos_x + ',' + pos_y +'!',
+        dot.node(stop, label=stop, shape='rectangle', pos=pos_x + ',' + pos_y + '!',
             fontsize='8pt', width='0.4', height='0.05',
             URL=stop_url(stop),
             fillcolor=col, style='filled')
@@ -70,8 +74,8 @@ def network_graphviz(network, outfile, colors=None, positions=scaled_position):
                          color=gbg_linecolors[int(line)], penwidth=str(2))
 
     dot.format = 'svg'
-    s = dot.pipe().decode('utf-8')
-    with open(outfile, 'w') as file:
+    s = dot.pipe().decode('utf8')
+    with open(outfile, 'w', encoding='utf-8') as file:
         file.write(s)
 
 
@@ -80,11 +84,35 @@ def show_shortest(dep, dest):
     network = readTramNetwork()
 
     # TODO: replace this mock-up with actual computation using dijkstra
-    timepath = 'The quickest route from ' + dep + ' to ' + dest
-    geopath = 'The shortest route from ' + dep + ' to ' + dest
+    if dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)):
+        tp = dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v))[dest]
+        timepath = f'Quickest: {str(tp)}'
+    else:
+        timepath = 'Unable to find quickest route. Make sure that all stops are spelled correctly.'
+    if dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)):
+        gp = dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v))[dest]
+        geopath = f'Shortest: {str(gp)}'
+    else:
+        geopath = 'Unable to find shortest route. Make sure that all stops are spelled correctly.'
+    
+    
+    
+    
+    colors = {}
+    if tp and gp:
+        for stop in (tp+gp):
+            if stop in tp and not stop in gp:
+                colors[stop] = 'orange'
+            if stop in gp and not stop in tp:
+                colors[stop] = 'green'
+            if stop in tp and stop in gp:
+                colors[stop] = 'cyan'
 
     # TODO: run this with the shortest-path colors to update the svg image
-    # network_graphviz(network, SHORTEST_PATH_SVG, colors=...):
+    network_graphviz(network, SHORTEST_PATH_SVG, colors=colors)
     
     return timepath, geopath
 
+show_shortest('Chalmers', 'Komettorget')
+
+#print(show_shortest('Chalmers', 'Komettorget')[0], '\n', '\n', show_shortest('Chalmers', 'Komettorget')[1])
