@@ -15,8 +15,6 @@ from .trams import specialize_stops_to_lines, specialized_geo_distance, speciali
 SHORTEST_PATH_SVG = os.path.join(settings.BASE_DIR,
                         'tram/templates/tram/images/shortest_path.svg')
 
-print(SHORTEST_PATH_SVG)
-
 # assign colors to lines, indexed by line number; not quite accurate
 gbg_linecolors = {
     1: 'gray', 2: 'yellow', 3: 'blue', 4: 'green', 5: 'red',
@@ -25,7 +23,6 @@ gbg_linecolors = {
 
 
 def scaled_position(network):
-
     # compute the scale of the map
     minlat, minlon, maxlat, maxlon = network.extreme_positions()
     size_x = maxlon - minlon
@@ -33,22 +30,30 @@ def scaled_position(network):
     x_factor = scalefactor/size_x
     size_y = maxlat - minlat
     y_factor = scalefactor/size_y
-    
     return lambda xy: (x_factor*(xy[0]-minlon), y_factor*(xy[1]-minlat))
 
 # Bonus task 2: redefine this so that it returns the actual traffic information
 import urllib.parse
-def stop_url(stop):
-    google_url = 'https://www.google.com/search'
-    attrs = urllib.parse.urlencode({'q': 'Gothenburg ' + stop})
-    return google_url + '?' + attrs
+from bs4 import BeautifulSoup
+def find_all_links(url='https://www.vasttrafik.se/reseplanering/hallplatslista/'):
+    # finds all <a> tags on the given website
+    html_doc = urllib.request.urlopen(url)
+    soup = BeautifulSoup(html_doc, 'html.parser')
+    return soup.find_all('a')
+
+def stop_url(links, stop):
+    # identifies GID and creates URL for given stop
+    for link in links:
+        if stop in link.getText() and 'Göteborg' in link.getText():
+            if 'hallplatser' in link.get('href').split('/'):
+                GID = link.get('href').split('/')[3]
+                return f'https://avgangstavla.vasttrafik.se/?source=vasttrafikse-stopareadetailspage&stopAreaGid={GID}'
 
 
 # You don't probably need to change this
-
 def network_graphviz(network, outfile, colors=None, positions=scaled_position):
-    dot = graphviz.Graph(engine='fdp', graph_attr={'size!': '15,15'})
-
+    dot = graphviz.Graph(engine='fdp', graph_attr={'size': '13,13'})
+    
     for stop in network.all_stops():
         
         y, x = network.stop_position(stop)
@@ -64,7 +69,7 @@ def network_graphviz(network, outfile, colors=None, positions=scaled_position):
         
         dot.node(stop, label=stop, shape='rectangle', pos=pos_x + ',' + pos_y,
             fontsize='8pt', width='0.4', height='0.05',
-            URL=stop_url(stop),
+            URL=stop_url(links, stop),
             fillcolor=col, style='filled')
         
     for line in network.all_lines():
@@ -84,13 +89,6 @@ def show_shortest(dep, dest):
     network = readTramNetwork()
 
     # TODO: replace this mock-up with actual computation using dijkstra
-    '''
-    if dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)):
-        tp = dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v))[dest]
-
-    if dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)):
-        gp = dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v))[dest]
-    '''
     spec_network = specialize_stops_to_lines(network)
     time = specialized_transition_time(spec_network, dep, dest)
     geo = specialized_geo_distance(spec_network, dep, dest)
@@ -98,9 +96,9 @@ def show_shortest(dep, dest):
     geostops = list(set([s[0] for s in geo[0]]))
     timepath = time[1]
     geopath = geo[1]
-    print(timepath)
-    print('')
-    print(geopath)
+    #print(timepath)
+    #print('')
+    #print(geopath)
     
     colors = {}
     for stop in (timestops+geostops):
@@ -116,6 +114,7 @@ def show_shortest(dep, dest):
     
     return timepath, geopath
 
-#show_shortest('Chalmers', 'Komettorget')
+#gather links at the start so it does not have to be repeated for every search#
+links = find_all_links()
 
-#print(show_shortest('Chalmers', 'Komettorget')[0], '\n', '\n', show_shortest('Chalmers', 'Komettorget')[1])
+#show_shortest('Opaltorget', 'Komettorget')

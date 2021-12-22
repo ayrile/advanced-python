@@ -134,6 +134,7 @@ def readTramNetwork(tramfile=TRAM_FILE):
     return TramNetwork(linedict, stopdict, timesdict)
 
 
+#taken from lab1
 def lines_via_stop(line_dict, stop):
     """returns list of lines that go via the given stop, 
     returns None if no lines go via the stop"""
@@ -148,7 +149,7 @@ def lines_via_stop(line_dict, stop):
         return lines
     return None
 
-
+#taken from lab1
 def distance_between_stops(stops_dict, stop1, stop2, network=False):
     """returns geographic distance between any two stops,
     returns None if unknown stop is entered,
@@ -182,7 +183,7 @@ def distance_between_stops(stops_dict, stop1, stop2, network=False):
 # Bonus task 1: take changes into account and show used tram lines
 
 def specialize_stops_to_lines(network, changetime=10, changedistance=0.02):
-    # TODO: write this function as specified
+    # creates graph as specified
     stops = network.all_stops()
     lines = network.all_lines()
     
@@ -217,7 +218,7 @@ def specialize_stops_to_lines(network, changetime=10, changedistance=0.02):
 
 
 def specialized_transition_time(spec_network, a, b):
-    # TODO: write this function as specified  
+    # finds quickest possible path 
     options = []
     
     for vertex1 in spec_network.vertices():
@@ -232,15 +233,6 @@ def specialized_transition_time(spec_network, a, b):
                                     give_total=True)[1][vertex2]
                     options.append([path, time])
 
-    '''      
-    for opt in options:
-        path = opt[0]
-        line_changes = 0
-        for i in range(len(path)-1):
-            if path[i][0] == path[i+1][0]:
-                line_changes += 1
-        opt[1] += changetime * line_changes
-    '''   
     options.sort(key=lambda p:p[1])
     quickest = options[0]
     
@@ -260,7 +252,7 @@ def specialized_transition_time(spec_network, a, b):
 
 
 def specialized_geo_distance(spec_network, a, b):
-    # TODO: write this function as specified
+    # finds the shortest possible path
     options = []
     
     for vertex1 in spec_network.vertices():
@@ -274,16 +266,7 @@ def specialized_geo_distance(spec_network, a, b):
                                     cost=lambda u,v: spec_network.get_weight(u,v)['distance'], 
                                     give_total=True)[1][vertex2]
                     options.append([path, distance])
-                    
-    '''         
-    for opt in options:
-        path = opt[0]
-        line_changes = 0
-        for i in range(len(path)-1):
-            if path[i][0] == path[i+1][0]:
-                line_changes += 1
-        opt[1] += changedistance * line_changes
-    ''' 
+
     options.sort(key=lambda p:p[1])    
     shortest = options[0]
     
@@ -296,16 +279,7 @@ def specialized_geo_distance(spec_network, a, b):
             website_output.append(f'{shortest_path[i][1]} {shortest_path[i][0]} - ')
         else:
             website_output.append(f'{shortest_path[i][0]} - ')
-    website_output.append(f'{str(shortest[1])} km')
+    website_output.append(f'{str(round(shortest[1], 3))} km')
     geopath = 'Shortest: ' + ''.join(website_output)
     
     return shortest[0], geopath
-
-
-#sn = specialize_stops_to_lines(readTramNetwork())
-#print(specialized_transition_time(sn, 'Chalmers', 'Komettorget'))
-#print(specialized_geo_distance(sn, 'Chalmers', 'Komettorget'))
-
-
-
-
