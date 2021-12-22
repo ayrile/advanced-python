@@ -84,31 +84,38 @@ def show_shortest(dep, dest):
     network = readTramNetwork()
 
     # TODO: replace this mock-up with actual computation using dijkstra
+    '''
     if dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)):
         tp = dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v))[dest]
 
     if dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)):
         gp = dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v))[dest]
+    '''
+    spec_network = specialize_stops_to_lines(network)
+    time = specialized_transition_time(spec_network, dep, dest)
+    geo = specialized_geo_distance(spec_network, dep, dest)
+    timestops = list(set([s[0] for s in time[0]]))
+    geostops = list(set([s[0] for s in geo[0]]))
+    timepath = time[1]
+    geopath = geo[1]
+    print(timepath)
+    print('')
+    print(geopath)
     
     colors = {}
-    if tp and gp:
-        for stop in (tp+gp):
-            if stop in tp and not stop in gp:
-                colors[stop] = 'orange'
-            if stop in gp and not stop in tp:
-                colors[stop] = 'green'
-            if stop in tp and stop in gp:
-                colors[stop] = 'cyan'
+    for stop in (timestops+geostops):
+        if stop in timestops and not stop in geostops:
+            colors[stop] = 'orange'
+        if stop in geostops and not stop in timestops:
+            colors[stop] = 'green'
+        if stop in timestops and stop in geostops:
+            colors[stop] = 'cyan'
 
     # TODO: run this with the shortest-path colors to update the svg image
     network_graphviz(network, SHORTEST_PATH_SVG, colors=colors)
     
-    spec_network = specialize_stops_to_lines(network)
-    timepath = specialized_transition_time(spec_network, dep, dest)
-    geopath = specialized_geo_distance(spec_network, dep, dest)
-    
     return timepath, geopath
 
-#show_shortest('Chalmers', 'Komettorget')
+#show_shortest('Chalmers', 'Hjalmar Brantingsplatsen')
 
 #print(show_shortest('Chalmers', 'Komettorget')[0], '\n', '\n', show_shortest('Chalmers', 'Komettorget')[1])

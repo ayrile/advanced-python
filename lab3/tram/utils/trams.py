@@ -231,8 +231,7 @@ def specialized_transition_time(spec_network, a, b):
                                     cost=lambda u,v: spec_network.get_weight(u,v)['time'], 
                                     give_total=True)[1][vertex2]
                     options.append([path, time])
-                    
-                    print(vertex1, vertex2, time)
+
     '''      
     for opt in options:
         path = opt[0]
@@ -243,9 +242,6 @@ def specialized_transition_time(spec_network, a, b):
         opt[1] += changetime * line_changes
     '''   
     options.sort(key=lambda p:p[1])
-    
-    print(options)
-    
     quickest = options[0]
     
     quickest_path = quickest[0]
@@ -258,8 +254,9 @@ def specialized_transition_time(spec_network, a, b):
         else:
             website_output.append(f'{quickest_path[i][0]} - ')
     website_output.append(f'{str(quickest[1])} minutes')
+    timepath = 'Quickest: ' + ''.join(website_output)
     
-    return 'Quickest: ' + ''.join(website_output)
+    return quickest[0], timepath
 
 
 def specialized_geo_distance(spec_network, a, b):
@@ -278,7 +275,6 @@ def specialized_geo_distance(spec_network, a, b):
                                     give_total=True)[1][vertex2]
                     options.append([path, distance])
                     
-                    print(vertex1, vertex2, distance)
     '''         
     for opt in options:
         path = opt[0]
@@ -288,10 +284,7 @@ def specialized_geo_distance(spec_network, a, b):
                 line_changes += 1
         opt[1] += changedistance * line_changes
     ''' 
-    options.sort(key=lambda p:p[1])
-    
-    print(options)
-    
+    options.sort(key=lambda p:p[1])    
     shortest = options[0]
     
     shortest_path = shortest[0]
@@ -304,8 +297,9 @@ def specialized_geo_distance(spec_network, a, b):
         else:
             website_output.append(f'{shortest_path[i][0]} - ')
     website_output.append(f'{str(shortest[1])} km')
+    geopath = 'Shortest: ' + ''.join(website_output)
     
-    return 'Shortest: ' + ''.join(website_output)
+    return shortest[0], geopath
 
 
 #sn = specialize_stops_to_lines(readTramNetwork())
