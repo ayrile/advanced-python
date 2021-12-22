@@ -124,7 +124,7 @@ class WeightedGraph(Graph):
             print('Cannot set weight of an unknown edge.')
     
 
-def dijkstra(graph, source, cost=lambda u,v: 1):
+def dijkstra(graph, source, cost=lambda u,v: 1, give_total=False):
     """Returns a dictionary, where the keys are all target vertices reachable from the source, 
     and their values are paths from the source to the target 
     (i.e. lists of vertices in the order that the shortest path traverses them)."""
@@ -172,6 +172,8 @@ def dijkstra(graph, source, cost=lambda u,v: 1):
                 path.reverse()
                 paths[vertex] = path
     
+    if give_total:
+        return paths, dist
     return paths
                 
     

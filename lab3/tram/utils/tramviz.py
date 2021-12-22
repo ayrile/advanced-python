@@ -61,8 +61,8 @@ def network_graphviz(network, outfile, colors=None, positions=scaled_position):
             col = colors[stop] # set this to white to create gbg_tramnet.svg
         else:
             col = 'white'
-            
-        dot.node(stop, label=stop, shape='rectangle', pos=pos_x + ',' + pos_y + '!',
+        
+        dot.node(stop, label=stop, shape='rectangle', pos=pos_x + ',' + pos_y +'!',
             fontsize='8pt', width='0.4', height='0.05',
             URL=stop_url(stop),
             fillcolor=col, style='filled')
@@ -86,17 +86,9 @@ def show_shortest(dep, dest):
     # TODO: replace this mock-up with actual computation using dijkstra
     if dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v)):
         tp = dijkstra(network, dep, cost=lambda u,v: network.get_weight(u,v))[dest]
-        timepath = f'Quickest: {str(tp)}'
-    else:
-        timepath = 'Unable to find quickest route. Make sure that all stops are spelled correctly.'
+
     if dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)) and dest in dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v)):
         gp = dijkstra(network, dep, cost=lambda u,v: network.geo_distance(u,v))[dest]
-        geopath = f'Shortest: {str(gp)}'
-    else:
-        geopath = 'Unable to find shortest route. Make sure that all stops are spelled correctly.'
-    
-    
-    
     
     colors = {}
     if tp and gp:
@@ -111,8 +103,12 @@ def show_shortest(dep, dest):
     # TODO: run this with the shortest-path colors to update the svg image
     network_graphviz(network, SHORTEST_PATH_SVG, colors=colors)
     
+    spec_network = specialize_stops_to_lines(network)
+    timepath = specialized_transition_time(spec_network, dep, dest)
+    geopath = specialized_geo_distance(spec_network, dep, dest)
+    
     return timepath, geopath
 
-show_shortest('Chalmers', 'Komettorget')
+#show_shortest('Chalmers', 'Komettorget')
 
 #print(show_shortest('Chalmers', 'Komettorget')[0], '\n', '\n', show_shortest('Chalmers', 'Komettorget')[1])

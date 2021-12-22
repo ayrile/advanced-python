@@ -3,7 +3,7 @@ import json
 # imports added in Lab3 version
 import math
 import os, sys
-from .graphs import WeightedGraph   #.
+from .graphs import WeightedGraph, visualize, dijkstra   #.
 #sys.path.append('../../mysite/')
 #import settings
 from django.conf import settings
@@ -183,16 +183,125 @@ def distance_between_stops(stops_dict, stop1, stop2, network=False):
 
 def specialize_stops_to_lines(network):
     # TODO: write this function as specified
-    return network
+    stops = network.all_stops()
+    lines = network.all_lines()
+    
+    G = WeightedGraph() 
+    
+    for stop in stops:
+        for line in network.stop_lines(stop):
+            G.add_vertex((stop, line))
+    
+    for edge in network.edges():
+        for line in lines:
+            if edge[0] in network.line_stops(line) and edge[1] in network.line_stops(line):
+                G.add_edge((edge[0], line), (edge[1], line))
+                
+    for vertex1 in G.vertices():
+        for vertex2 in G.vertices():
+            if vertex1[0] == vertex2[0] and not vertex1 == vertex2:
+                G.add_edge(vertex1, vertex2)
+                
+    for vertex in G.vertices():
+        G.set_vertex_value(vertex, network.stop_position(vertex[0]))
+          
+    for edge in G.edges():
+        if edge[0][0] == edge[1][0]:
+            G.set_weight(edge[0], edge[1], dict({'time':0, 'distance':0}))
+        else:
+            time = network.transition_time(edge[0][0], edge[1][0])
+            distance = network.geo_distance(edge[0][0], edge[1][0])
+            G.set_weight(edge[0], edge[1], dict({'time':time, 'distance':distance}))
+            
+    return G
 
 
 def specialized_transition_time(spec_network, a, b, changetime=10):
-    # TODO: write this function as specified
-    return changetime
+    # TODO: write this function as specified  
+    options = []
+    
+    for vertex1 in spec_network.vertices():
+        if a in vertex1:
+            for vertex2 in spec_network.vertices():
+                if b in vertex2:
+                    path = dijkstra(spec_network, vertex1, 
+                                    cost=lambda u,v: spec_network.get_weight(u,v)['time'], 
+                                    give_total=True)[0][vertex2]
+                    time = dijkstra(spec_network, vertex1, 
+                                    cost=lambda u,v: spec_network.get_weight(u,v)['time'], 
+                                    give_total=True)[1][vertex2]
+                    options.append([path, time])
+                    
+    for opt in options:
+        path = opt[0]
+        line_changes = 0
+        for i in range(len(path)-1):
+            if path[i][0] == path[i+1][0]:
+                line_changes += 1
+        opt[1] += changetime * line_changes
+        
+    options.sort(key=lambda p:p[1])
+    quickest = options[0]
+    
+    quickest_path = quickest[0]
+    website_output = []
+    for i in range(len(quickest_path)):
+        if i == 0:
+            website_output.append(f'{quickest_path[i][1]} {quickest_path[i][0]} - ')
+        elif not quickest_path[i][1] == quickest_path[i-1][1]:
+            website_output.append(f'{quickest_path[i][1]} {quickest_path[i][0]} - ')
+        else:
+            website_output.append(f'{quickest_path[i][0]} - ')
+    website_output.append(f'{str(quickest[1])} minutes')
+    
+    return 'Quickest: ' + ''.join(website_output)
 
 
 def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
     # TODO: write this function as specified
-    return changedistance
+    options = []
+    
+    for vertex1 in spec_network.vertices():
+        if a in vertex1:
+            for vertex2 in spec_network.vertices():
+                if b in vertex2:
+                    path = dijkstra(spec_network, vertex1, 
+                                    cost=lambda u,v: spec_network.get_weight(u,v)['distance'], 
+                                    give_total=True)[0][vertex2]
+                    distance = dijkstra(spec_network, vertex1, 
+                                    cost=lambda u,v: spec_network.get_weight(u,v)['distance'], 
+                                    give_total=True)[1][vertex2]
+                    options.append([path, distance])
+                    
+    for opt in options:
+        path = opt[0]
+        line_changes = 0
+        for i in range(len(path)-1):
+            if path[i][0] == path[i+1][0]:
+                line_changes += 1
+        opt[1] += changedistance * line_changes
+        
+    options.sort(key=lambda p:p[1])
+    shortest = options[0]
+    
+    shortest_path = shortest[0]
+    website_output = []
+    for i in range(len(shortest_path)):
+        if i == 0:
+            website_output.append(f'{shortest_path[i][1]} {shortest_path[i][0]} - ')
+        elif not shortest_path[i][1] == shortest_path[i-1][1]:
+            website_output.append(f'{shortest_path[i][1]} {shortest_path[i][0]} - ')
+        else:
+            website_output.append(f'{shortest_path[i][0]} - ')
+    website_output.append(f'{str(shortest[1])} km')
+    
+    return 'Shortest: ' + ''.join(website_output)
+
+
+#sn = specialize_stops_to_lines(readTramNetwork())
+#print(specialized_transition_time(sn, 'Chalmers', 'Komettorget'))
+#print(specialized_geo_distance(sn, 'Chalmers', 'Komettorget'))
+
+
 
 
