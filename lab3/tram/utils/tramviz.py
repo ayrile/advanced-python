@@ -47,11 +47,11 @@ def stop_url(stop):
 # You don't probably need to change this
 
 def network_graphviz(network, outfile, colors=None, positions=scaled_position):
-    dot = graphviz.Graph(engine='fdp', graph_attr={'size': '12,12'})
+    dot = graphviz.Graph(engine='fdp', graph_attr={'size!': '15,15'})
 
     for stop in network.all_stops():
         
-        x, y = network.stop_position(stop)
+        y, x = network.stop_position(stop)
         x, y = float(x), float(y)
         if positions:
             x, y = positions(network)((x, y))
@@ -62,7 +62,7 @@ def network_graphviz(network, outfile, colors=None, positions=scaled_position):
         else:
             col = 'white'
         
-        dot.node(stop, label=stop, shape='rectangle', pos=pos_x + ',' + pos_y +'!',
+        dot.node(stop, label=stop, shape='rectangle', pos=pos_x + ',' + pos_y,
             fontsize='8pt', width='0.4', height='0.05',
             URL=stop_url(stop),
             fillcolor=col, style='filled')
@@ -74,7 +74,7 @@ def network_graphviz(network, outfile, colors=None, positions=scaled_position):
                          color=gbg_linecolors[int(line)], penwidth=str(2))
 
     dot.format = 'svg'
-    s = dot.pipe().decode('utf8')
+    s = dot.pipe().decode('utf-8')
     with open(outfile, 'w', encoding='utf-8') as file:
         file.write(s)
 
@@ -116,6 +116,6 @@ def show_shortest(dep, dest):
     
     return timepath, geopath
 
-#show_shortest('Chalmers', 'Hjalmar Brantingsplatsen')
+#show_shortest('Chalmers', 'Komettorget')
 
 #print(show_shortest('Chalmers', 'Komettorget')[0], '\n', '\n', show_shortest('Chalmers', 'Komettorget')[1])
