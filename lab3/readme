@@ -1,4 +1,0 @@
-In order to run the website, one needs to start a terminal in the folder 'lab3' and then enter the following commands:
-myvenv\Scripts\activate.bat
-python manage.py runserver
-Then the url is displayed and can be pasted into a browser.
