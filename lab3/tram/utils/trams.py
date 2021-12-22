@@ -181,7 +181,7 @@ def distance_between_stops(stops_dict, stop1, stop2, network=False):
 
 # Bonus task 1: take changes into account and show used tram lines
 
-def specialize_stops_to_lines(network):
+def specialize_stops_to_lines(network, changetime=10, changedistance=0.02):
     # TODO: write this function as specified
     stops = network.all_stops()
     lines = network.all_lines()
@@ -207,7 +207,7 @@ def specialize_stops_to_lines(network):
           
     for edge in G.edges():
         if edge[0][0] == edge[1][0]:
-            G.set_weight(edge[0], edge[1], dict({'time':0, 'distance':0}))
+            G.set_weight(edge[0], edge[1], dict({'time':changetime, 'distance':changedistance}))
         else:
             time = network.transition_time(edge[0][0], edge[1][0])
             distance = network.geo_distance(edge[0][0], edge[1][0])
@@ -216,7 +216,7 @@ def specialize_stops_to_lines(network):
     return G
 
 
-def specialized_transition_time(spec_network, a, b, changetime=10):
+def specialized_transition_time(spec_network, a, b):
     # TODO: write this function as specified  
     options = []
     
@@ -232,6 +232,8 @@ def specialized_transition_time(spec_network, a, b, changetime=10):
                                     give_total=True)[1][vertex2]
                     options.append([path, time])
                     
+                    print(vertex1, vertex2, time)
+    '''      
     for opt in options:
         path = opt[0]
         line_changes = 0
@@ -239,8 +241,11 @@ def specialized_transition_time(spec_network, a, b, changetime=10):
             if path[i][0] == path[i+1][0]:
                 line_changes += 1
         opt[1] += changetime * line_changes
-        
+    '''   
     options.sort(key=lambda p:p[1])
+    
+    print(options)
+    
     quickest = options[0]
     
     quickest_path = quickest[0]
@@ -257,7 +262,7 @@ def specialized_transition_time(spec_network, a, b, changetime=10):
     return 'Quickest: ' + ''.join(website_output)
 
 
-def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
+def specialized_geo_distance(spec_network, a, b):
     # TODO: write this function as specified
     options = []
     
@@ -273,6 +278,8 @@ def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
                                     give_total=True)[1][vertex2]
                     options.append([path, distance])
                     
+                    print(vertex1, vertex2, distance)
+    '''         
     for opt in options:
         path = opt[0]
         line_changes = 0
@@ -280,8 +287,11 @@ def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
             if path[i][0] == path[i+1][0]:
                 line_changes += 1
         opt[1] += changedistance * line_changes
-        
+    ''' 
     options.sort(key=lambda p:p[1])
+    
+    print(options)
+    
     shortest = options[0]
     
     shortest_path = shortest[0]
